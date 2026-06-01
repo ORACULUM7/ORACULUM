@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORACULUM — Consultas Espirituais</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cinzel:wght@400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:        #c9a96e;
+  --gold-light:  #f0deb4;
+  --gold-dim:    #e8d5a3;
+  --gold-dark:   #7a5c1e;
+  --deep:        #080604;
+  --dark:        #0e0b07;
+  --panel:       #131009;
+  --panel2:      #1a1510;
+  --border:      rgba(201,169,110,0.15);
+  --border-hi:   rgba(201,169,110,0.45);
+  --text:        #ede3d0;
+  --text-dim:    #8a7b63;
+  --text-mid:    #b8a88a;
+  --red:         #a83232;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--deep);
+  color: var(--text);
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── CANVAS ESTRELAS ─── */
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── LOADER ─── */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: var(--deep);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  transition: opacity 0.6s, visibility 0.6s;
+}
+#loader.hidden { opacity: 0; visibility: hidden; }
+.loader-sigil {
+  width: 64px;
+  height: 64px;
+  animation: spin-slow 3s linear infinite;
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.loader-text {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 6px;
+  color: var(--gold);
+  opacity: 0.6;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 0.2; } }
+
+/* ─── SITE CLIENT ─── */
+#page-client { position: relative; z-index: 1; }
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(8,6,4,0.95), transparent);
+  backdrop-filter: blur(4px);
+}
+.nav-logo {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  letter-spacing: 8px;
+  color: var(--gold);
+  text-decoration: none;
+}
+.nav-right {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--text-dim);
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 24px 60px;
+  position: relative;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 200px;
+  background: linear-gradient(transparent, var(--deep));
+  pointer-events: none;
+}
+
+.sigil-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin-bottom: 52px;
+}
+.sigil-outer {
+  position: absolute;
+  inset: 0;
+  animation: spin-slow 50s linear infinite;
+  filter: drop-shadow(0 0 24px rgba(201,169,110,0.35));
+}
+.sigil-mid {
+  position: absolute;
+  inset: 30px;
+  animation: spin-slow 30s linear infinite reverse;
+  filter: drop-shadow(0 0 12px rgba(201,169,110,0.2));
+}
+.sigil-center {
+  position: absolute;
+  inset: 75px;
+  animation: spin-slow 8s linear infinite;
+}
+.hero-eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 8px;
+  color: var(--gold);
+  opacity: 0.55;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+.hero-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(52px, 10vw, 108px);
+  font-weight: 600;
+  color: var(--gold-light);
+  letter-spacing: 12px;
+  line-height: 1;
+  margin-bottom: 6px;
+  text-shadow: 0 0 80px rgba(201,169,110,0.2);
+}
+.hero-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(13px, 2.5vw, 18px);
+  font-style: italic;
+  color: var(--text-mid);
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+}
+.divider {
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(transparent, var(--gold), transparent);
+  margin: 0 auto 32px;
+}
+.hero-desc {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(16px, 2.5vw, 20px);
+  color: var(--text-dim);
+  max-width: 500px;
+  line-height: 1.8;
+  margin-bottom: 56px;
+}
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  opacity: 0.4;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+/* SECTION */
+.section {
+  padding: 100px 24px;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.sec-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 6px;
+  color: var(--gold);
+  opacity: 0.55;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.sec-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(34px, 5vw, 58px);
+  font-weight: 300;
+  color: var(--gold-dim);
+  text-align: center;
+  margin-bottom: 70px;
+  line-height: 1.1;
+}
+
+/* CARDS GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2px;
+}
+
+.card {
+  background: var(--panel);
+  padding: 44px 36px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.4s;
+  border: 1px solid var(--border);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201,169,110,0.06) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.card:hover { background: var(--panel2); }
+.card:hover::before { opacity: 1; }
+
+.card-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.card:hover .card-line { opacity: 1; }
+
+.card-num {
+  position: absolute;
+  top: 24px; right: 28px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: var(--gold);
+  opacity: 0.2;
+  letter-spacing: 2px;
+}
+.card-img {
+  width: 100%;
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  filter: brightness(0.85);
+  transition: filter 0.4s;
+}
+.card:hover .card-img { filter: brightness(1); }
+
+.card-icon {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 24px;
+  filter: grayscale(0.2);
+}
+.card-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  opacity: 0.5;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--gold-dim);
+  margin-bottom: 16px;
+  line-height: 1.15;
+}
+.card-desc {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+.card-price {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--gold);
+  margin-bottom: 28px;
+}
+.card-price small {
+  font-size: 12px;
+  font-family: 'Lato', sans-serif;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+.card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 28px;
+  border: 1px solid var(--border-hi);
+  color: var(--gold);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.card-cta:hover { background: var(--gold); color: var(--deep); border-color: var(--gold); }
+
+/* SEPARATOR */
+.sep {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 0 auto;
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 60px 24px;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+}
+footer .f-logo {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  letter-spacing: 10px;
+  color: var(--gold);
+  opacity: 0.6;
+  margin-bottom: 16px;
+}
+footer p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-dim);
+}
+
+/* ─── MODAL AGENDAMENTO ─── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(4,3,2,0.94);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(6px);
+}
+.overlay.open { display: flex; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 540px;
+  padding: 56px 48px;
+  position: relative;
+  animation: rise 0.35s ease;
+}
+@keyframes rise {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:none; }
+}
+.modal-x {
+  position: absolute;
+  top: 18px; right: 22px;
+  background: none; border: none;
+  color: var(--text-dim); font-size: 20px;
+  cursor: pointer; line-height: 1;
+  transition: color 0.2s;
+}
+.modal-x:hover { color: var(--gold); }
+.modal-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px; letter-spacing: 5px;
+  color: var(--gold); opacity: 0.6;
+  margin-bottom: 10px;
+}
+.modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 34px; font-weight: 300;
+  color: var(--gold-dim);
+  margin-bottom: 28px;
+  line-height: 1.1;
+}
+.modal-service-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  background: rgba(201,169,110,0.04);
+  margin-bottom: 32px;
+}
+.msb-icon { font-size: 22px; }
+.msb-info .msb-name { font-family: 'Cormorant Garamond', serif; font-size: 19px; color: var(--gold-dim); }
+.msb-info .msb-price { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-family: 'Cinzel', serif; font-size: 8px;
+  letter-spacing: 3px; color: var(--gold);
+  opacity: 0.6; margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.field input, .field textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 16px;
+  font-family: 'Lato', sans-serif; font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+  border-radius: 0;
+}
+.field textarea { height: 90px; resize: none; }
+.field input:focus, .field textarea:focus { border-color: var(--gold); }
+
+.modal-submit {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: 'Cinzel', serif; font-size: 10px;
+  letter-spacing: 4px; text-transform: uppercase;
+  cursor: pointer; margin-top: 8px;
+  transition: all 0.3s;
+}
+.modal-submit:hover { background: var(--gold); color: var(--deep); }
+
+/* ─── ADMIN TRIGGER ─── */
+#adm-trigger {
+  position: fixed;
+  bottom: 0; right: 0;
+  width: 48px; height: 48px;
+  z-index: 800;
+  cursor: pointer;
+  opacity: 0;
+}
+
+/* ─── LOGIN ─── */
+#login-ov {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(4,3,2,0.97);
+  z-index: 900;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+}
+#login-ov.open { display: flex; }
+.login-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  width: 360px;
+  padding: 60px 44px;
+  text-align: center;
+}
+.lb-sigil { margin: 0 auto 28px; display: block; animation: spin-slow 12s linear infinite; }
+.lb-eyebrow {
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 5px; color: var(--gold); opacity: 0.5;
+  margin-bottom: 10px;
+}
+.lb-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 28px;
+  font-weight: 300; color: var(--gold-dim); margin-bottom: 36px;
+}
+.lb-input {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px; font-size: 18px;
+  text-align: center; letter-spacing: 8px;
+  outline: none; margin-bottom: 16px;
+  font-family: 'Lato', sans-serif;
+  transition: border-color 0.3s;
+}
+.lb-input:focus { border-color: var(--gold); }
+.lb-btn {
+  width: 100%; padding: 14px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold); font-family: 'Cinzel', serif;
+  font-size: 10px; letter-spacing: 4px;
+  cursor: pointer; transition: all 0.3s;
+}
+.lb-btn:hover { background: var(--gold); color: var(--deep); }
+.lb-err {
+  color: #c0392b; font-size: 11px;
+  margin-top: 12px; letter-spacing: 1px;
+  display: none;
+}
+.lb-cancel {
+  display: block; margin-top: 18px;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 3px; color: var(--text-dim);
+  cursor: pointer; background: none; border: none;
+  transition: color 0.2s;
+}
+.lb-cancel:hover { color: var(--gold); }
+
+/* ─── ADMIN PANEL ─── */
+#adm-panel {
+  display: none;
+  position: fixed; inset: 0; z-index: 950;
+  background: #080604;
+  overflow-y: auto;
+}
+#adm-panel.open { display: block; }
+
+.adm-nav {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  display: flex;
+  align-items: stretch;
+  position: sticky; top: 0; z-index: 10;
+}
+.adm-nav-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 13px; letter-spacing: 6px;
+  color: var(--gold); opacity: 0.8;
+  display: flex; align-items: center;
+  padding: 20px 0;
+  margin-right: 40px;
+}
+.adm-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
+}
+.adm-tab {
+  padding: 0 24px;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 3px; color: var(--text-dim);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex; align-items: center;
+}
+.adm-tab:hover { color: var(--gold); }
+.adm-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.adm-nav-right {
+  display: flex; align-items: center; gap: 10px;
+  margin-left: auto;
+}
+.an-btn {
+  padding: 8px 18px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif; font-size: 8px;
+  letter-spacing: 3px; cursor: pointer;
+  transition: all 0.2s;
+}
+.an-btn:hover { border-color: var(--gold); color: var(--gold); }
+.an-btn.save { border-color: rgba(201,169,110,0.5); color: var(--gold); }
+.an-btn.save:hover { background: var(--gold); color: var(--deep); }
+.an-btn.out { border-color: rgba(168,50,50,0.5); color: var(--red); }
+.an-btn.out:hover { background: var(--red); color: #fff; }
+
+.adm-content {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 40px;
+}
+
+/* Tab pages */
+.tab-page { display: none; }
+.tab-page.active { display: block; }
+
+/* Settings grid */
+.set-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.set-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 32px;
+}
+.set-card-title {
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 4px; color: var(--gold); opacity: 0.65;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.af { margin-bottom: 16px; }
+.af label {
+  display: block; font-family: 'Cinzel', serif;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--text-dim); margin-bottom: 7px;
+  text-transform: uppercase;
+}
+.af input, .af textarea, .af select {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px; font-size: 13px;
+  font-family: 'Lato', sans-serif;
+  outline: none; transition: border-color 0.3s;
+}
+.af textarea { resize: vertical; min-height: 78px; }
+.af select option { background: var(--panel); }
+.af input:focus, .af textarea:focus, .af select:focus { border-color: var(--gold); }
+
+/* Services admin */
+.svc-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.svc-row {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  transition: border-color 0.3s;
+}
+.svc-row:hover { border-color: var(--border-hi); }
+.svc-row-head {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 130px 120px;
+  gap: 16px;
+  padding: 18px 24px;
+  align-items: center;
+  cursor: pointer;
+}
+.svc-rh-icon { font-size: 24px; }
+.svc-rh-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; color: var(--gold-dim);
+}
+.svc-rh-tag {
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 3px; color: var(--text-dim);
+}
+.svc-rh-price {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; color: var(--gold);
+  text-align: right;
+}
+.svc-rh-acts { display: flex; gap: 6px; justify-content: flex-end; }
+.svc-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 9px;
+  letter-spacing: 2px; font-family: 'Cinzel', serif;
+  cursor: pointer; transition: all 0.2s;
+}
+.svc-btn:hover { border-color: var(--gold); color: var(--gold); }
+.svc-btn.del:hover { border-color: var(--red); color: var(--red); }
+
+.svc-edit {
+  display: none;
+  padding: 0 24px 24px;
+  border-top: 1px solid var(--border);
+  animation: rise 0.25s ease;
+}
+.svc-edit.open { display: block; }
+.se-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding-top: 20px;
+}
+.se-grid .full { grid-column: 1/-1; }
+.se-save {
+  margin-top: 16px;
+  padding: 11px 28px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold); font-family: 'Cinzel', serif;
+  font-size: 9px; letter-spacing: 3px;
+  cursor: pointer; transition: all 0.3s;
+}
+.se-save:hover { background: var(--gold); color: var(--deep); }
+
+/* Image upload in admin */
+.img-upload-wrap { display: flex; flex-direction: column; gap: 8px; }
+.img-preview {
+  width: 100%; height: 110px;
+  background-size: cover; background-position: center;
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+.img-preview.empty {
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 3px; color: var(--text-dim);
+  background: rgba(255,255,255,0.02);
+}
+.img-upload-btn {
+  display: inline-block; padding: 8px 16px;
+  background: transparent;
+  border: 1px dashed rgba(201,169,110,0.4);
+  color: var(--gold); font-family: 'Cinzel', serif;
+  font-size: 8px; letter-spacing: 3px;
+  cursor: pointer; text-align: center;
+  transition: all 0.2s;
+}
+.img-upload-btn:hover { border-color: var(--gold); background: rgba(201,169,110,0.05); }
+.img-remove-btn {
+  padding: 6px 12px; background: transparent;
+  border: 1px solid rgba(168,50,50,0.4);
+  color: var(--red); font-family: 'Cinzel', serif;
+  font-size: 8px; letter-spacing: 2px; cursor: pointer;
+  transition: all 0.2s;
+}
+.img-remove-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+.add-svc {
+  width: 100%; padding: 16px;
+  background: transparent;
+  border: 1px dashed rgba(201,169,110,0.25);
+  color: var(--gold); opacity: 0.55;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 4px; cursor: pointer;
+  transition: all 0.3s;
+}
+.add-svc:hover { opacity: 1; border-color: var(--gold); }
+
+/* Sync status */
+.sync-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  margin-bottom: 28px;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 3px; color: var(--text-dim);
+}
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #c0392b;
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+.sync-dot.ok { background: #27ae60; animation: blink 2s ease-in-out infinite; }
+.sync-dot.loading { background: var(--gold); animation: blink 0.5s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: 0.3; } }
+
+/* Toast */
+.toast {
+  display: none;
+  position: fixed;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold); color: var(--deep);
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 5px; padding: 13px 36px;
+  z-index: 9999; white-space: nowrap;
+  animation: rise 0.3s ease;
+}
+.toast.err { background: var(--red); color: #fff; }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .set-grid { grid-template-columns: 1fr; }
+  .svc-row-head { grid-template-columns: 48px 1fr 80px; }
+  .svc-rh-tag, .svc-rh-acts { display: none; }
+  .se-grid { grid-template-columns: 1fr; }
+  .adm-content { padding: 24px 16px; }
+  .adm-nav { padding: 0 16px; }
+  .modal { padding: 40px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- CANVAS STARS -->
+<canvas id="starfield"></canvas>
+
+<!-- LOADER -->
+<div id="loader">
+  <svg class="loader-sigil" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="40" r="37" fill="none" stroke="rgba(201,169,110,0.3)" stroke-width="0.8"/>
+    <polygon points="40,4 74,62 6,62" fill="none" stroke="rgba(201,169,110,0.5)" stroke-width="0.8"/>
+    <polygon points="40,76 6,18 74,18" fill="none" stroke="rgba(201,169,110,0.5)" stroke-width="0.8"/>
+    <circle cx="40" cy="40" r="5" fill="rgba(201,169,110,0.8)"/>
+  </svg>
+  <span class="loader-text">CARREGANDO</span>
+</div>
+
+<!-- ══════════ PÁGINA CLIENTE ══════════ -->
+<div id="page-client">
+  <nav>
+    <a href="#" class="nav-logo" id="nav-logo">ORACULUM</a>
+    <span class="nav-right" id="nav-tagline">CONSULTAS ESPIRITUAIS</span>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="sigil-wrap">
+      <svg class="sigil-outer" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="110" cy="110" r="107" fill="none" stroke="rgba(201,169,110,0.18)" stroke-width="0.7"/>
+        <circle cx="110" cy="110" r="90" fill="none" stroke="rgba(201,169,110,0.12)" stroke-width="0.5"/>
+        <polygon points="110,6 208,163 12,163" fill="none" stroke="rgba(201,169,110,0.25)" stroke-width="0.7"/>
+        <polygon points="110,214 12,57 208,57" fill="none" stroke="rgba(201,169,110,0.25)" stroke-width="0.7"/>
+        <circle cx="110" cy="6" r="2.5" fill="rgba(201,169,110,0.6)"/>
+        <circle cx="208" cy="163" r="2.5" fill="rgba(201,169,110,0.6)"/>
+        <circle cx="12" cy="163" r="2.5" fill="rgba(201,169,110,0.6)"/>
+        <circle cx="110" cy="214" r="2.5" fill="rgba(201,169,110,0.6)"/>
+        <circle cx="12" cy="57" r="2.5" fill="rgba(201,169,110,0.6)"/>
+        <circle cx="208" cy="57" r="2.5" fill="rgba(201,169,110,0.6)"/>
+      </svg>
+      <svg class="sigil-mid" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="80" cy="80" r="77" fill="none" stroke="rgba(201,169,110,0.3)" stroke-width="0.8"/>
+        <line x1="80" y1="3" x2="80" y2="157" stroke="rgba(201,169,110,0.2)" stroke-width="0.6"/>
+        <line x1="3" y1="80" x2="157" y2="80" stroke="rgba(201,169,110,0.2)" stroke-width="0.6"/>
+        <line x1="24" y1="24" x2="136" y2="136" stroke="rgba(201,169,110,0.15)" stroke-width="0.6"/>
+        <line x1="136" y1="24" x2="24" y2="136" stroke="rgba(201,169,110,0.15)" stroke-width="0.6"/>
+      </svg>
+      <svg class="sigil-center" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="35" cy="35" r="32" fill="none" stroke="rgba(201,169,110,0.5)" stroke-width="1"/>
+        <circle cx="35" cy="35" r="10" fill="rgba(201,169,110,0.08)" stroke="rgba(201,169,110,0.7)" stroke-width="1"/>
+        <circle cx="35" cy="35" r="3" fill="rgba(201,169,110,0.9)"/>
+      </svg>
+    </div>
+
+    <p class="hero-eyebrow" id="hero-eyebrow">PORTAL DE ORIENTAÇÃO ESPIRITUAL</p>
+    <h1 class="hero-title" id="hero-title">ORACULUM</h1>
+    <p class="hero-tagline" id="hero-tagline">Consultas Espirituais & Trabalhos de Luz</p>
+    <div class="divider"></div>
+    <p class="hero-desc" id="hero-desc">Conecte-se com as forças invisíveis que guiam seu destino. Encontre clareza, cura e direção para cada etapa da sua jornada.</p>
+    <div class="scroll-cue">
+      <svg width="16" height="24" viewBox="0 0 16 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0.5" y="0.5" width="15" height="23" rx="7.5" stroke="rgba(201,169,110,0.4)"/>
+        <circle cx="8" cy="7" r="2" fill="rgba(201,169,110,0.6)">
+          <animate attributeName="cy" values="7;16;7" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+      <span>ROLAR</span>
+    </div>
+  </section>
+
+  <div class="sep"></div>
+
+  <!-- SERVIÇOS -->
+  <section class="section">
+    <p class="sec-label">NOSSOS SERVIÇOS</p>
+    <h2 class="sec-heading" id="sec-heading">Consultas & Trabalhos Espirituais</h2>
+    <div class="grid" id="cards-grid">
+      <!-- Cards injetados via JS -->
+    </div>
+  </section>
+
+  <footer>
+    <p class="f-logo">ORACULUM</p>
+    <p id="footer-txt">© 2025 — Oraculum — Todos os direitos reservados</p>
+  </footer>
+</div>
+
+<!-- ══════════ MODAL AGENDAMENTO ══════════ -->
+<div class="overlay" id="sched-ov">
+  <div class="modal">
+    <button class="modal-x" onclick="closeSchedule()">✕</button>
+    <p class="modal-label">SOLICITAR AGENDAMENTO</p>
+    <h2 class="modal-title">Agendar Consulta</h2>
+    <div class="modal-service-badge" id="msb">
+      <span class="msb-icon" id="msb-icon">🔮</span>
+      <div class="msb-info">
+        <div class="msb-name" id="msb-name">—</div>
+        <div class="msb-price" id="msb-price">—</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Nome Completo</label>
+      <input type="text" id="f-name" placeholder="Seu nome"/>
+    </div>
+    <div class="field">
+      <label>WhatsApp / Telefone</label>
+      <input type="tel" id="f-phone" placeholder="(00) 00000-0000"/>
+    </div>
+    <div class="field">
+      <label>Mensagem (opcional)</label>
+      <textarea id="f-msg" placeholder="Descreva brevemente sua situação ou dúvida..."></textarea>
+    </div>
+    <button class="modal-submit" onclick="submitSchedule()">ENVIAR SOLICITAÇÃO VIA WHATSAPP</button>
+  </div>
+</div>
+
+<!-- ══════════ TRIGGER ADMIN (invisível — 3 cliques) ══════════ -->
+<div id="adm-trigger"></div>
+
+<!-- ══════════ LOGIN ADMIN ══════════ -->
+<div id="login-ov">
+  <div class="login-box">
+    <svg class="lb-sigil" width="52" height="52" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="37" fill="none" stroke="rgba(201,169,110,0.35)" stroke-width="1"/>
+      <polygon points="40,5 73,59 7,59" fill="none" stroke="rgba(201,169,110,0.5)" stroke-width="1"/>
+      <polygon points="40,75 7,21 73,21" fill="none" stroke="rgba(201,169,110,0.5)" stroke-width="1"/>
+      <circle cx="40" cy="40" r="5" fill="rgba(201,169,110,0.8)"/>
+    </svg>
+    <p class="lb-eyebrow">ÁREA RESTRITA</p>
+    <h3 class="lb-title">Acesso Administrativo</h3>
+    <input class="lb-input" type="password" id="adm-pass" placeholder="••••••"
+      onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <button class="lb-btn" onclick="tryLogin()">ENTRAR</button>
+    <p class="lb-err" id="lb-err">Senha incorreta. Tente novamente.</p>
+    <button class="lb-cancel" onclick="closeLogin()">CANCELAR</button>
+  </div>
+</div>
+
+<!-- ══════════ PAINEL ADMIN ══════════ -->
+<div id="adm-panel">
+  <div class="adm-nav">
+    <span class="adm-nav-brand">⟡ &nbsp;ORACULUM ADMIN</span>
+    <div class="adm-tabs">
+      <button class="adm-tab active" data-tab="svcs">SERVIÇOS</button>
+      <button class="adm-tab" data-tab="site">CONFIGURAÇÕES</button>
+    </div>
+    <div class="adm-nav-right">
+      <button class="an-btn save" onclick="saveAll()">✓ SALVAR</button>
+      <button class="an-btn out"  onclick="exitAdmin()">✕ SAIR</button>
+    </div>
+  </div>
+
+  <div class="adm-content">
+    <div class="sync-bar">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-txt">Conectando ao Firebase…</span>
+    </div>
+
+    <!-- TAB: SERVIÇOS -->
+    <div class="tab-page active" id="tab-svcs">
+      <div class="svc-list" id="adm-svc-list"></div>
+      <button class="add-svc" onclick="addService()">+ &nbsp;ADICIONAR NOVO SERVIÇO / TRABALHO</button>
+    </div>
+
+    <!-- TAB: CONFIGURAÇÕES -->
+    <div class="tab-page" id="tab-site">
+      <div class="set-grid">
+        <div class="set-card">
+          <p class="set-card-title">Identidade Visual</p>
+          <div class="af"><label>Título Principal (Hero)</label><input type="text" id="s-title"/></div>
+          <div class="af"><label>Tagline / Subtítulo</label><input type="text" id="s-tagline"/></div>
+          <div class="af"><label>Descrição do Hero</label><textarea id="s-desc"></textarea></div>
+          <div class="af"><label>Título da Seção de Serviços</label><input type="text" id="s-sec-heading"/></div>
+        </div>
+        <div class="set-card">
+          <p class="set-card-title">Contato & Rodapé</p>
+          <div class="af"><label>WhatsApp (com DDI — ex: 5544999990000)</label><input type="text" id="s-wa"/></div>
+          <div class="af"><label>Texto do Rodapé</label><input type="text" id="s-footer"/></div>
+          <div class="af"><label>Texto Nav (canto direito)</label><input type="text" id="s-navtag"/></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════ FIREBASE + APP ══════════ -->
+<script type="module">
+import { initializeApp }           from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ── CONFIG ──
+const firebaseConfig = {
+  apiKey: "AIzaSyByfPxQ9_9YDjb53lNyFIw2MZaAqD8VpyY",
+  authDomain: "consultas-bfa58.firebaseapp.com",
+  projectId: "consultas-bfa58",
+  storageBucket: "consultas-bfa58.firebasestorage.app",
+  messagingSenderId: "1094962630161",
+  appId: "1:1094962630161:web:1183b2c8994efb3cdb2bb0"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+const PASS = "218939";
+const DOCREF = doc(db, "oraculum", "config");
+
+// ── ESTADO ──
+const DEFAULT_STATE = {
+  title: "ORACULUM",
+  tagline: "Consultas Espirituais & Trabalhos de Luz",
+  desc: "Conecte-se com as forças invisíveis que guiam seu destino. Encontre clareza, cura e direção para cada etapa da sua jornada.",
+  secHeading: "Consultas & Trabalhos Espirituais",
+  footer: "© 2025 — Oraculum — Todos os direitos reservados",
+  whatsapp: "5500000000000",
+  navTagline: "CONSULTAS ESPIRITUAIS",
+  services: [
+    { id:"s1", icon:"🐚", tag:"Consulta", name:"Jogo de Búzios de Orixás",    desc:"Consulta sagrada através dos búzios para revelar a mensagem dos Orixás sobre sua vida, amor, saúde e caminhos espirituais.", price:"Consulte" , img:"" },
+    { id:"s2", icon:"🔱", tag:"Consulta", name:"Jogo de Búzios de Exu",       desc:"Consulta direta com o mensageiro das encruzilhadas. Exu abre caminhos, desfaz obstáculos e traz orientação clara e objetiva.", price:"Consulte", img:"" },
+    { id:"s3", icon:"🃏", tag:"Consulta", name:"Baralho Cigano",               desc:"Leitura com o tradicional baralho cigano para revelar situações presentes, passadas e futuras em amor, trabalho e espiritualidade.", price:"Consulte", img:"" },
+    { id:"s4", icon:"🔮", tag:"Consulta", name:"Tarot",                        desc:"Revelação dos caminhos e energias através das cartas sagradas do Tarot. Uma sessão profunda, íntima e transformadora.", price:"Consulte", img:"" },
+    { id:"s5", icon:"🌹", tag:"Consulta", name:"Baralho de Pomba Gira",        desc:"Consulta com a poderosa Pomba Gira para assuntos do coração, relações afetivas, paixão e questões femininas.", price:"Consulte", img:"" },
+    { id:"s6", icon:"🎩", tag:"Consulta", name:"Tarot Malandro",               desc:"Leitura com o Tarot do Malandro para orientações práticas, desembaraço de situações e respostas diretas.", price:"Consulte", img:"" },
+    { id:"s7", icon:"✨", tag:"Trabalho", name:"Trabalho de Limpeza",          desc:"Remoção de energias negativas, cargas, olho-gordo e bloqueios que impedem seu progresso espiritual, afetivo e material.", price:"Consulte", img:"" },
+    { id:"s8", icon:"🌟", tag:"Trabalho", name:"Trabalho de Prosperidade",     desc:"Trabalho espiritual para atrair abundância, desbloquear finanças, abrir caminhos e trazer prosperidade em todas as áreas da vida.", price:"Consulte", img:"" }
+  ]
+};
+
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+// ── STARS ──
+(function() {
+  const c = document.getElementById("starfield");
+  const ctx = c.getContext("2d");
+  const stars = [];
+  function resize() { c.width = innerWidth; c.height = innerHeight; }
+  resize();
+  window.addEventListener("resize", resize);
+  for (let i = 0; i < 160; i++) {
+    stars.push({ x: Math.random(), y: Math.random(), r: Math.random()*1.2+0.2, o: Math.random()*0.5+0.1, s: Math.random()*0.5+0.3 });
+  }
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.x*c.width, s.y*c.height, s.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(201,169,110,${s.o * (0.5+0.5*Math.sin(t*s.s+s.x*10))})`;
+      ctx.fill();
+    });
+    t += 0.005;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── FIREBASE LISTENER ──
+function setSyncStatus(status) {
+  const dot = document.getElementById("sync-dot");
+  const txt = document.getElementById("sync-txt");
+  dot.className = "sync-dot " + (status === "ok" ? "ok" : status === "loading" ? "loading" : "");
+  txt.textContent = status === "ok" ? "Sincronizado com Firebase" : status === "loading" ? "Sincronizando…" : "Erro de conexão";
+}
+
+async function loadFromFirebase() {
+  try {
+    const snap = await getDoc(DOCREF);
+    if (snap.exists()) {
+      state = snap.data();
+      // Ensure services is array
+      if (!Array.isArray(state.services)) state.services = DEFAULT_STATE.services;
+    } else {
+      await setDoc(DOCREF, state);
+    }
+    setSyncStatus("ok");
+  } catch(e) {
+    console.error(e);
+    setSyncStatus("err");
+    showToast("Erro ao carregar dados — usando cache local", true);
+  }
+  renderClient();
+  document.getElementById("loader").classList.add("hidden");
+}
+
+// ── RENDER CLIENT ──
+function renderClient() {
+  document.getElementById("hero-title").textContent   = state.title;
+  document.getElementById("hero-tagline").textContent = state.tagline;
+  document.getElementById("hero-desc").textContent    = state.desc;
+  document.getElementById("sec-heading").textContent  = state.secHeading;
+  document.getElementById("footer-txt").textContent   = state.footer;
+  document.getElementById("nav-logo").textContent     = state.title;
+  document.getElementById("nav-tagline").textContent  = state.navTagline;
+  document.title = state.title + " — Consultas Espirituais";
+
+  const grid = document.getElementById("cards-grid");
+  grid.innerHTML = "";
+  state.services.forEach((s, i) => {
+    const d = document.createElement("div");
+    d.className = "card";
+    const imgHtml = s.img
+      ? `<div class="card-img" style="background-image:url('${s.img}')"></div>`
+      : `<span class="card-icon">${s.icon}</span>`;
+    d.innerHTML = `
+      <div class="card-line"></div>
+      <span class="card-num">0${i+1}</span>
+      ${imgHtml}
+      <p class="card-tag">${s.tag}</p>
+      <h3 class="card-name">${s.name}</h3>
+      <p class="card-desc">${s.desc}</p>
+      <div class="card-price">${s.price}</div>
+      <button class="card-cta" onclick="window.__openSchedule('${s.id}')">
+        Agendar &nbsp;→
+      </button>
+    `;
+    grid.appendChild(d);
+  });
+}
+
+// ── SCHEDULE MODAL ──
+window.__openSchedule = function(id) {
+  const s = state.services.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById("msb-icon").textContent  = s.icon;
+  document.getElementById("msb-name").textContent  = s.name;
+  document.getElementById("msb-price").textContent = s.price;
+  document.getElementById("sched-ov").classList.add("open");
+  window.__schedService = s;
+};
+window.closeSchedule = function() {
+  document.getElementById("sched-ov").classList.remove("open");
+};
+window.submitSchedule = function() {
+  const name  = document.getElementById("f-name").value.trim();
+  const phone = document.getElementById("f-phone").value.trim();
+  const msg   = document.getElementById("f-msg").value.trim();
+  if (!name || !phone) { showToast("Preencha nome e telefone", true); return; }
+  const s = window.__schedService;
+  const wa = (state.whatsapp||"5500000000000").replace(/\D/g,"");
+  const txt = encodeURIComponent(`Olá! Quero agendar: *${s.name}*\n\nNome: ${name}\nTelefone: ${phone}${msg ? "\nMensagem: "+msg : ""}`);
+  window.open(`https://wa.me/${wa}?text=${txt}`, "_blank");
+  closeSchedule();
+};
+
+// ── TRIPLE CLICK ADMIN TRIGGER (logo nav) ──
+(function() {
+  let clicks = 0, timer;
+  document.getElementById("nav-logo").addEventListener("click", (e) => {
+    e.preventDefault();
+    clicks++;
+    clearTimeout(timer);
+    timer = setTimeout(() => { clicks = 0; }, 800);
+    if (clicks >= 3) { clicks = 0; clearTimeout(timer); openLogin(); }
+  });
+})();
+
+// ── LOGIN ──
+window.openLogin = function() {
+  document.getElementById("login-ov").classList.add("open");
+  document.getElementById("adm-pass").value = "";
+  document.getElementById("lb-err").style.display = "none";
+  setTimeout(()=>document.getElementById("adm-pass").focus(), 100);
+};
+window.closeLogin = function() {
+  document.getElementById("login-ov").classList.remove("open");
+};
+window.tryLogin = function() {
+  if (document.getElementById("adm-pass").value === PASS) {
+    closeLogin();
+    openAdmin();
+  } else {
+    document.getElementById("lb-err").style.display = "block";
+    document.getElementById("adm-pass").value = "";
+    document.getElementById("adm-pass").focus();
+  }
+};
+
+// ── ADMIN ──
+function openAdmin() {
+  document.getElementById("adm-panel").classList.add("open");
+  loadAdminFields();
+  renderAdminServices();
+}
+window.exitAdmin = function() {
+  document.getElementById("adm-panel").classList.remove("open");
+};
+
+function loadAdminFields() {
+  document.getElementById("s-title").value       = state.title;
+  document.getElementById("s-tagline").value     = state.tagline;
+  document.getElementById("s-desc").value        = state.desc;
+  document.getElementById("s-sec-heading").value = state.secHeading;
+  document.getElementById("s-footer").value      = state.footer;
+  document.getElementById("s-wa").value          = state.whatsapp;
+  document.getElementById("s-navtag").value      = state.navTagline;
+}
+
+function renderAdminServices() {
+  const list = document.getElementById("adm-svc-list");
+  list.innerHTML = "";
+  state.services.forEach(s => {
+    const row = document.createElement("div");
+    row.className = "svc-row";
+    row.id = "row-"+s.id;
+    row.innerHTML = `
+      <div class="svc-row-head" onclick="toggleEdit('${s.id}')">
+        <span class="svc-rh-icon">${s.icon}</span>
+        <span class="svc-rh-name">${s.name}</span>
+        <span class="svc-rh-tag">${s.tag}</span>
+        <span class="svc-rh-price">${s.price}</span>
+        <div class="svc-rh-acts" onclick="event.stopPropagation()">
+          <button class="svc-btn" onclick="toggleEdit('${s.id}')">EDITAR</button>
+          <button class="svc-btn del" onclick="deleteService('${s.id}')">EXCLUIR</button>
+        </div>
+      </div>
+      <div class="svc-edit" id="edit-${s.id}">
+        <div class="se-grid">
+          <div class="af"><label>Ícone (emoji)</label><input type="text" id="ei-icon-${s.id}" value="${s.icon}"/></div>
+          <div class="af"><label>Categoria / Tag</label><input type="text" id="ei-tag-${s.id}" value="${s.tag}"/></div>
+          <div class="af full"><label>Nome do Serviço</label><input type="text" id="ei-name-${s.id}" value="${s.name}"/></div>
+          <div class="af full"><label>Descrição</label><textarea id="ei-desc-${s.id}">${s.desc}</textarea></div>
+          <div class="af"><label>Valor</label><input type="text" id="ei-price-${s.id}" value="${s.price}"/></div>
+          <div class="af">
+            <label>Imagem do Serviço</label>
+            <div class="img-upload-wrap">
+              ${s.img ? `<div class="img-preview" id="prev-${s.id}" style="background-image:url('${s.img}')"></div>` : `<div class="img-preview empty" id="prev-${s.id}">Sem imagem</div>`}
+              <label class="img-upload-btn">
+                ESCOLHER IMAGEM
+                <input type="file" accept="image/*" style="display:none" onchange="handleImgUpload('${s.id}', this)"/>
+              </label>
+              ${s.img ? `<button class="img-remove-btn" onclick="removeImg('${s.id}')">✕ REMOVER</button>` : ''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="se-save" onclick="saveService('${s.id}')">SALVAR SERVIÇO</button>
+          </div>
+        </div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+window.toggleEdit = function(id) {
+  document.getElementById("edit-"+id)?.classList.toggle("open");
+};
+
+window.handleImgUpload = function(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const s = state.services.find(x => x.id === id);
+    if (s) s.img = dataUrl;
+    const prev = document.getElementById("prev-"+id);
+    if (prev) {
+      prev.style.backgroundImage = `url('${dataUrl}')`;
+      prev.classList.remove("empty");
+      prev.textContent = "";
+    }
+    showToast("Imagem carregada — clique SALVAR SERVIÇO");
+  };
+  reader.readAsDataURL(file);
+};
+
+window.removeImg = function(id) {
+  const s = state.services.find(x => x.id === id);
+  if (s) s.img = "";
+  renderAdminServices();
+  showToast("Imagem removida");
+};
+
+window.saveService = function(id) {
+  const s = state.services.find(x => x.id === id);
+  if (!s) return;
+  s.icon  = document.getElementById("ei-icon-"+id)?.value  || s.icon;
+  s.tag   = document.getElementById("ei-tag-"+id)?.value   || s.tag;
+  s.name  = document.getElementById("ei-name-"+id)?.value  || s.name;
+  s.desc  = document.getElementById("ei-desc-"+id)?.value  || s.desc;
+  s.price = document.getElementById("ei-price-"+id)?.value || s.price;
+  // img is already saved in state by handleImgUpload
+  if (!s.img) s.img = "";
+  document.getElementById("edit-"+id)?.classList.remove("open");
+  renderAdminServices();
+  renderClient();
+  showToast("Serviço atualizado");
+};
+
+window.deleteService = function(id) {
+  if (!confirm("Excluir este serviço permanentemente?")) return;
+  state.services = state.services.filter(x => x.id !== id);
+  renderAdminServices();
+  renderClient();
+};
+
+window.addService = function() {
+  const id = "s"+Date.now();
+  state.services.push({ id, icon:"⭐", tag:"Consulta", name:"Novo Serviço", desc:"Descrição do serviço espiritual.", price:"Consulte", img:"" });
+  renderAdminServices();
+  setTimeout(()=>{
+    const el = document.getElementById("edit-"+id);
+    el?.classList.add("open");
+    el?.scrollIntoView({ behavior:"smooth", block:"center" });
+  }, 80);
+};
+
+// ── SAVE ALL (Firebase) ──
+window.saveAll = async function() {
+  state.title      = document.getElementById("s-title").value       || state.title;
+  state.tagline    = document.getElementById("s-tagline").value     || state.tagline;
+  state.desc       = document.getElementById("s-desc").value        || state.desc;
+  state.secHeading = document.getElementById("s-sec-heading").value || state.secHeading;
+  state.footer     = document.getElementById("s-footer").value      || state.footer;
+  state.whatsapp   = document.getElementById("s-wa").value          || state.whatsapp;
+  state.navTagline = document.getElementById("s-navtag").value      || state.navTagline;
+
+  setSyncStatus("loading");
+  try {
+    await setDoc(DOCREF, state);
+    setSyncStatus("ok");
+    renderClient();
+    showToast("DADOS SALVOS NO FIREBASE ✓");
+  } catch(e) {
+    console.error(e);
+    setSyncStatus("err");
+    showToast("Erro ao salvar. Verifique as regras do Firestore.", true);
+  }
+};
+
+// ── TABS ──
+document.querySelectorAll(".adm-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".adm-tab").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-page").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-"+btn.dataset.tab)?.classList.add("active");
+  });
+});
+
+// ── TOAST ──
+function showToast(msg, err=false) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast" + (err ? " err" : "");
+  t.style.display = "block";
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.style.display="none"; }, 2600);
+}
+window.showToast = showToast;
+
+// ── INIT ──
+loadFromFirebase();
+</script>
+</body>
+</html>
